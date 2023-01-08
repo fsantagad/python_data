@@ -1,0 +1,273 @@
+openapi: 3.0.0
+servers:
+  - description: Python Exercise App
+    url: http://localhost:5000/
+info:
+  description: Python Exercise API
+  version: "1.0.0"
+  title: Python Exercise API
+  contact:
+    email: fra@gmail.com
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+paths:
+  /persons:
+    get:
+      tags:
+        - person
+      summary: searches person
+      operationId: api.get
+      description: |
+        By passing in the appropriate options, you can search for
+        person
+      parameters:
+        - name: page
+          in: query
+          description: page number
+          required: false
+          schema:
+            type: number
+        - name: per_page
+          in: query
+          description: items number per page
+          required: false
+          schema:
+            type: number
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/listPersons'
+        '400':
+          description: bad input parameter
+    post:
+      tags:
+        - person
+      summary: add a person
+      operationId: api.post
+      description: Adds person
+      responses:
+        '201':
+          description: person created
+        '400':
+          description: 'invalid input, object invalid'
+        '409':
+          description: a person already exists
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/person'
+        description: person to add
+
+  /persons/{id}:
+    put:
+      operationId: api.put
+      tags:
+        - person
+      summary: Update a person
+      description: Update a Person
+      parameters:
+        - name: id
+          in: path
+          description: Person ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+
+      responses:
+        200:
+          description: Successfully updated a Person
+  /persons/country/{country}:
+    get:
+      tags:
+        - person
+      summary: searches person by country ISO code
+      operationId: api.get_persons_by_country
+      description: |
+        Retrun person by country ISO code
+      parameters:
+        - name: country
+          in: path
+          description: country ISO code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: searches results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/person'
+        '400':
+          description: bad input parameter
+  /persons/stats/person-per-country:
+    get:
+      tags:
+        - person
+      summary: stats count persons per country
+      operationId: api.count_persons_by_country
+      description: |
+        Retrun person per country
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/responsePersonsPerCountry'
+        '400':
+          description: bad input parameter
+  /persons/stats/person-per-gender:
+    get:
+      tags:
+        - person
+      summary: stats persons per gender
+      operationId: api.count_persons_by_gender
+      description: |
+        Retrun person per gender
+      parameters:
+        - name: page
+          in: query
+          description: page number
+          required: false
+          schema:
+            type: number
+        - name: per_page
+          in: query
+          description: items number per page
+          required: false
+          schema:
+            type: number
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/responsePersonsPerGender'
+        '400':
+          description: bad input parameter
+  /persons/stats/ip-per-class:
+    get:
+      tags:
+        - person
+      summary: stats ip per class
+      operationId: api.ip_by_class
+      description: |
+        Retrun person per gender
+      parameters:
+        - name: page
+          in: query
+          description: page number
+          required: false
+          schema:
+            type: number
+        - name: per_page
+          in: query
+          description: items number per page
+          required: false
+          schema:
+            type: number
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/responseIpPerClass'
+        '400':
+          description: bad input parameter
+components:
+  schemas:
+    responseIpPerClass:
+      type: object
+      properties:
+        class:
+          type: string
+        page:
+          type: number
+        per_page:
+          type: number
+        total_pages:
+          type: number
+        ip_addresses:
+          type: array
+          items:
+            type: string     
+    responsePersonsPerGender:
+      type: object
+      properties:
+        gender:
+          type: string
+        count:
+          type: number
+        page:
+          type: number
+        per_page:
+          type: number
+        total_pages:
+          type: number
+        persons:
+          type: array
+          items:
+            $ref: '#/components/schemas/person'
+    responsePersonsPerCountry:
+      type: object
+      properties:
+        country:
+          type: string
+        persons:
+          type: number
+    listPersons:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/person'
+        page:
+          type: number
+        per_page:
+          type: number
+        total_pages:
+          type: number     
+    country: 
+      type: object
+      properties:
+        id:
+          type: number
+        country:
+          type: string
+        person_id:
+          type: number
+    person:
+      type: object
+      properties:
+        id:
+          type: number
+        first_name:
+          type: string
+        last_name:
+          type: string
+        email:
+          type: string
+        gender: 
+          type: string
+        ip_address:
+          type: string
+        country: 
+          $ref: '#/components/schemas/country'
