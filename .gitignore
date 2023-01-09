@@ -1,0 +1,15 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Environments in this case commeted but normally environments files go in gitignore
+#.env
+#.venv
+#env/
+
+# log files
+.log

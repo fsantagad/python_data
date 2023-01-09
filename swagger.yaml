@@ -198,16 +198,18 @@ components:
       properties:
         class:
           type: string
+        count:
+          type: number
         page:
           type: number
         per_page:
           type: number
         total_pages:
           type: number
-        ip_addresses:
+        persons:
           type: array
           items:
-            type: string     
+            $ref: '#/components/schemas/person'  
     responsePersonsPerGender:
       type: object
       properties:

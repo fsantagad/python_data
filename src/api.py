@@ -4,22 +4,15 @@ from model.person import Person, PersonSchema, Country, CountrySchema, PersonsPe
 from flask import Flask, jsonify, request
 import logging
 
-def get(id=None, page=1, per_page=10):
+def get(id=None, page=None, per_page=None):
     """
     get Person
     """
-    # get page parameter
-    page_qp = request.args['page']
-    # get per_page parameter
-    per_page_qp = request.args['per_page']
-    # get id parameter
-    id_qp = request.args['id']
-
-    # convert numeric parameters
-    if page_qp != None:
-        page = convert_anything_to_int(page_qp, 1)
-    if per_page_qp != None:
-        per_page = convert_anything_to_int(per_page_qp, 10)
+    # set default parameters
+    if page is None:
+        page = 1
+    if per_page is None:
+        per_page = 10
 
     try:
         # get all persons
@@ -135,20 +128,15 @@ def convert_anything_to_int(s, default=0):
         i = default
     return i
 
-def count_persons_by_gender(page_gender=1, per_page_gender=10):
+def count_persons_by_gender(page=None, per_page=None):
     """
     Count and give Persons by gender
     """
-    # get page parameters
-    page_gender_qp = request.args['page']
-    # get per_page parameters
-    per_page_gender_qp = request.args['per_page']
-
-    # convert nnumeric parameters
-    if page_gender_qp != None:
-        page_gender = convert_anything_to_int(page_gender_qp, 1)
-    if per_page_gender_qp != None:
-        per_page_gender = convert_anything_to_int(per_page_gender_qp, 10)
+    # set default parameters
+    if page is None:
+        page = 1
+    if per_page is None:
+        per_page = 10
     
     # query
     try:
@@ -179,18 +167,18 @@ def count_persons_by_gender(page_gender=1, per_page_gender=10):
             if all_genders_json[index]['gender'] == gender:
                 persons_schema =  PersonSchema(many=True)
                 all_genders_json[index]['count'] = all_genders_json[index]['persons']
-                total_pages = math.ceil( int(all_genders_json[index]['persons']) / per_page_gender ) 
-                if page_gender > 0 and page_gender <= total_pages:
-                    all_genders_json[index]['page'] = page_gender
+                total_pages = math.ceil( int(all_genders_json[index]['persons']) / per_page ) 
+                if page > 0 and page <= total_pages:
+                    all_genders_json[index]['page'] = page
                 else:
-                    if page_gender < 1:
-                        page_gender = 1  
+                    if page < 1:
+                        page = 1  
                     else:
-                        page_gender = total_pages
-                    all_genders_json[index]['page'] = page_gender
-                all_genders_json[index]['per_page'] = per_page_gender
+                        page = total_pages
+                    all_genders_json[index]['page'] = page
+                all_genders_json[index]['per_page'] = per_page
                 all_genders_json[index]['total_pages'] = total_pages
-                all_genders_json[index]['persons'] = persons_schema.jsonify(qgender.paginate(page=page_gender, per_page=per_page_gender).items).json
+                all_genders_json[index]['persons'] = persons_schema.jsonify(qgender.paginate(page=page, per_page=per_page).items).json
 
         return all_genders_json, 200
     except Exception as e:
@@ -220,7 +208,7 @@ def elaborate_ipclass_query(from_ip, to_ip, page, per_page, label):
     result_json['total_pages'] = total_pages
     return result_json
 
-def ip_by_class(page=1, per_page=10):
+def ip_by_class(page=None, per_page=None):
     """
     Group Ip Persons by class 
 
@@ -230,16 +218,12 @@ def ip_by_class(page=1, per_page=10):
     Class D 224-239.x.x.x;
     Class E 240-255.x.x.x;
     """
-    # get page parameters
-    page_qp = request.args['page']
-    # get per_page parameters
-    per_page_qp = request.args['per_page']
 
     # convert numeric parameters
-    if page_qp != None:
-        page = convert_anything_to_int(page_qp, 1)
-    if per_page_qp != None:
-        per_page = convert_anything_to_int(per_page_qp, 10)
+    if page is None:
+        page = 1
+    if per_page is None:
+        per_page = 10
     
     # query
     try:
