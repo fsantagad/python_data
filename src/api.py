@@ -1,6 +1,7 @@
 import json
 import math
-from model.person import Person, PersonSchema, Country, CountrySchema, PersonsPerCountrySchema, PersonsPerGenderSchema, db
+from model.person import Person, PersonSchema, Country, DomainsRecurrentsSchema
+from model.person import CountrySchema, PersonsPerCountrySchema, PersonsPerGenderSchema, db
 from flask import Flask, jsonify, request
 import logging
 
@@ -241,6 +242,114 @@ def ip_by_class(page=None, per_page=None):
         result.append(class_e_json) 
 
         return result, 200
+    except Exception as e:
+        logging.error("error api: " + str(e))
+        return jsonify({"error":"There was an error please contact the administrator"}), 400
+
+
+def email_domain_recurrent():
+    """
+    Most recurrent email domains
+    """
+    
+    # query
+    try:
+        count = db.func.count(Person.id).label("count")
+        domain = db.func.substring_index(Person.email, "@", -1).label("domain")
+        q = db.session.query(
+            domain,
+            count
+        ).group_by(
+            domain
+        ).order_by(
+            count.desc()
+        )
+        domains_schema =  DomainsRecurrentsSchema(many=True)
+
+        return domains_schema.jsonify(q.all()), 200
+    except Exception as e:
+        logging.error("error api: " + str(e))
+        return jsonify({"error":"There was an error please contact the administrator"}), 400
+
+def email_format_regex(regex):
+    count = db.func.count(Person.id).label("count")
+    q = db.session.query(
+        count
+    ).filter(
+        Person.email.op('regexp')(regex)
+    )
+    return q.first().count
+
+def create_response_email_format(result, count, label):
+    obj_firstname = {}
+    obj_firstname["email_format"] = label
+    obj_firstname["count"] = count
+    result.append(obj_firstname)
+    return result
+
+def email_format_recurrent():
+    """
+    Most recurrent email format
+    Check these email formats with firstname and lastname:
+        1. firstname@domain.com
+        2. flastname@domain.com
+        3. flastnameXX@domain.com
+        4. firstname.lastname@domain.com
+        5. firstname.lastnameXX@domain.com
+        6. flastnameLETTER@domain.com
+        7. flastnameNUMBERLETTER@domain.com
+        8. flastnameLETTERNUMBER@domain.com
+    """
+    
+    # query
+    try:
+        DOMAIN_REGEX = '@[A-Za-z0-9.-]+[.][A-Za-z]+$'
+
+        # firstname@domain.com
+        regex_firstname = db.func.concat(db.func.lower(Person.first_name), DOMAIN_REGEX)
+        count_firstname_format = email_format_regex(regex_firstname)
+        
+        # flastname@domain.com
+        regex_flastname = db.func.concat(db.func.left(db.func.lower(Person.first_name), 1), db.func.lower(db.func.replace(Person.last_name, "'", "")), DOMAIN_REGEX)
+        count_flastname_format = email_format_regex(regex_flastname)
+
+        # flastnameNUMBER@domain.com
+        regex_flastnameNUMBER = db.func.concat(db.func.left(db.func.lower(Person.first_name), 1), db.func.lower(db.func.replace(Person.last_name, "'", "")), '[0-9]+', DOMAIN_REGEX)
+        count_flastnameNUMBER_format = email_format_regex(regex_flastnameNUMBER)
+
+        # firstname.lastname@domain.com
+        regex_firstname_lastname = db.func.concat(db.func.lower(Person.first_name), db.func.lower(db.func.replace(Person.last_name, "'", "")), DOMAIN_REGEX)
+        count_firstname_lastname_format = email_format_regex(regex_firstname_lastname)
+        
+        # firstname.lastnameNUMBER@domain.com
+        regex_firstname_lastnameNUMBER = db.func.concat(db.func.lower(Person.first_name), db.func.lower(db.func.replace(Person.last_name, "'", "")), '[0-9]+', DOMAIN_REGEX)
+        count_firstname_lastnameNUMBER_format = email_format_regex(regex_firstname_lastnameNUMBER)
+        
+        # flastnameLETTER@domain.com
+        regex_flastnameLETTER = db.func.concat(db.func.left(db.func.lower(Person.first_name), 1), db.func.lower(db.func.replace(Person.last_name, "'", "")), '[A-Za-z]+', DOMAIN_REGEX)
+        count_flastnameLETTER_format = email_format_regex(regex_flastnameLETTER)
+        
+        # flastnameNUMBERLETTER@domain.com
+        regex_flastnameNUMBERLETTER = db.func.concat(db.func.left(db.func.lower(Person.first_name), 1), db.func.lower(db.func.replace(Person.last_name, "'", "")), '[0-9]+[A-Za-z]+', DOMAIN_REGEX)
+        count_flastnameNUMBERLETTER_format = email_format_regex(regex_flastnameNUMBERLETTER)
+
+        # flastnameLETTERNUMBER@domain.com
+        regex_flastnameLETTERNUMBER = db.func.concat(db.func.left(db.func.lower(Person.first_name), 1), db.func.lower(db.func.replace(Person.last_name, "'", "")), '[A-Za-z]+[0-9]+', DOMAIN_REGEX)
+        count_flastnameLETTERNUMBER_format = email_format_regex(regex_flastnameLETTERNUMBER)
+
+        result = []
+
+        create_response_email_format(result, count_firstname_format, "firstname@domain.com")
+        create_response_email_format(result, count_flastname_format, "flastname@domain.com")
+        create_response_email_format(result, count_flastnameNUMBER_format, "flastnameNUMBER@domain.com")
+        create_response_email_format(result, count_firstname_lastname_format, "firstname.lastname@domain.com")
+        create_response_email_format(result, count_firstname_lastnameNUMBER_format, "firstname.lastnameNUMBER@domain.com")
+        create_response_email_format(result, count_flastnameLETTER_format, "flastnameLETTER@domain.com")
+        create_response_email_format(result, count_flastnameNUMBERLETTER_format, "flastnameNUMBERLETTER@domain.com")
+        create_response_email_format(result, count_flastnameLETTERNUMBER_format, "flastnameLETTERNUMBER@domain.com")
+
+        result_sorted = sorted(result, key=lambda x: x["count"], reverse=True)
+        return result_sorted, 200
     except Exception as e:
         logging.error("error api: " + str(e))
         return jsonify({"error":"There was an error please contact the administrator"}), 400

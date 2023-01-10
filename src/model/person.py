@@ -86,3 +86,13 @@ class PersonsPerGenderSchema(ma.Schema):
         'gender', 
         'persons'
         )
+
+class DomainsRecurrentsSchema(ma.Schema):
+  """
+  Schema
+  """
+  class Meta:
+        fields = (
+        'domain', 
+        'count'
+        )

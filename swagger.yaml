@@ -191,8 +191,60 @@ paths:
                   $ref: '#/components/schemas/responseIpPerClass'
         '400':
           description: bad input parameter
+  /persons/stats/most-recurrents-email-domain:
+    get:
+      tags:
+        - person
+      summary: stats for email domain sorted count
+      operationId: api.email_domain_recurrent
+      description: |
+        Return email domain, sorted by most recurrent
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/responseMostRecurrentEmailDomain'
+        '400':
+          description: bad input parameter
+  /persons/stats/most-recurrents-email-formats:
+    get:
+      tags:
+        - person
+      summary: stats for email user format
+      operationId: api.email_format_recurrent
+      description: |
+        Return known email format, sorted by most recurrent
+      responses:
+        '200':
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/responseMostRecurrentEmailFormat'
+        '400':
+          description: bad input parameter
 components:
   schemas:
+    responseMostRecurrentEmailFormat:
+      type: object
+      properties:
+        email_format:
+          type: string
+        count:
+          type: number
+    responseMostRecurrentEmailDomain:
+      type: object
+      properties:
+        domain:
+          type: string
+        count:
+          type: number
     responseIpPerClass:
       type: object
       properties:
